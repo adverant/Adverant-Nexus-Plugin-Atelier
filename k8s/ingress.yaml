@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nexus-atelier-ingress
+  namespace: nexus
+  labels:
+    app: nexus-atelier
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "5120m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/websocket-services: "nexus-atelier"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "atelier_affinity"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+spec:
+  tls:
+  - hosts:
+    - atelier.adverant.ai
+    - api.atelier.adverant.ai
+    secretName: nexus-atelier-tls
+  rules:
+  - host: atelier.adverant.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nexus-atelier
+            port:
+              number: 9130
+  - host: api.atelier.adverant.ai
+    http:
+      paths:
+      - path: /api/v1
+        pathType: Prefix
+        backend:
+          service:
+            name: nexus-atelier
+            port:
+              number: 9130
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: nexus-atelier
+            port:
+              number: 9131
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nexus-atelier-pdb
+  namespace: nexus
+  labels:
+    app: nexus-atelier
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: nexus-atelier

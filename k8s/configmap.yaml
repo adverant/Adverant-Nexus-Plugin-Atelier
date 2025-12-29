@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-atelier-config
+  namespace: nexus
+  labels:
+    app: nexus-atelier
+data:
+  # Redis Configuration
+  redis-url: "redis://nexus-redis:6379"
+
+  # MinIO Configuration
+  minio-endpoint: "nexus-minio:9000"
+  minio-bucket: "nexus-atelier"
+
+  # Service URLs
+  mageagent-url: "http://nexus-mageagent:9080"
+  graphrag-url: "http://nexus-graphrag:9090"
+  videoagent-url: "http://nexus-videoagent:9200"
+  fileprocess-url: "http://nexus-fileprocess:9096"
+  sandbox-url: "http://nexus-sandbox:9095"
+  auth-service-url: "http://nexus-auth:9101"
+
+  # Queue Configuration
+  queue-concurrency-video: "10"
+  queue-concurrency-image: "50"
+  queue-concurrency-audio: "20"
+
+  # Feature Flags
+  enable-draft-mode: "true"
+  enable-consensus-mode: "true"
+  enable-personalization: "true"
+
+  # Limits
+  max-video-duration: "60"
+  max-image-resolution: "4096x4096"
+  max-file-size-bytes: "5368709120"
+
+  # Logging
+  log-level: "info"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nexus-atelier-secrets
+  namespace: nexus
+  labels:
+    app: nexus-atelier
+type: Opaque
+stringData:
+  # Database connection string
+  # Update with actual credentials in production
+  database-url: "postgresql://postgres:CHANGE_ME@nexus-postgres:5432/nexus_atelier"
+
+  # API Keys (examples - replace with actual values)
+  openai-api-key: "sk-CHANGE_ME"
+  runway-api-key: "rw-CHANGE_ME"
+  elevenlabs-api-key: "el-CHANGE_ME"
+  stability-api-key: "sk-CHANGE_ME"
+
+  # MinIO Credentials
+  minio-access-key: "CHANGE_ME"
+  minio-secret-key: "CHANGE_ME"

@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus-atelier
+  namespace: nexus
+  labels:
+    app: nexus-atelier
+    tier: backend
+    component: creative-production
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: nexus-atelier
+  template:
+    metadata:
+      labels:
+        app: nexus-atelier
+        tier: backend
+        component: creative-production
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9130"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: nexus-atelier
+      containers:
+      - name: nexus-atelier
+        image: localhost:5000/nexus-atelier:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9130
+          protocol: TCP
+        - name: ws
+          containerPort: 9131
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "9130"
+        - name: WS_PORT
+          value: "9131"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: nexus-atelier-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-atelier-config
+              key: redis-url
+        - name: MINIO_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: nexus-atelier-config
+              key: minio-endpoint
+        - name: MINIO_BUCKET
+          value: "nexus-atelier"
+        - name: MAGEAGENT_URL
+          value: "http://nexus-mageagent:9080"
+        - name: GRAPHRAG_URL
+          value: "http://nexus-graphrag:9090"
+        - name: VIDEOAGENT_URL
+          value: "http://nexus-videoagent:9200"
+        - name: FILEPROCESS_URL
+          value: "http://nexus-fileprocess:9096"
+        - name: SANDBOX_URL
+          value: "http://nexus-sandbox:9095"
+        - name: AUTH_SERVICE_URL
+          value: "http://nexus-auth:9101"
+        - name: QUEUE_CONCURRENCY_VIDEO
+          value: "10"
+        - name: QUEUE_CONCURRENCY_IMAGE
+          value: "50"
+        - name: QUEUE_CONCURRENCY_AUDIO
+          value: "20"
+        - name: ENABLE_DRAFT_MODE
+          value: "true"
+        - name: ENABLE_CONSENSUS_MODE
+          value: "true"
+        - name: ENABLE_PERSONALIZATION
+          value: "true"
+        - name: MAX_VIDEO_DURATION
+          value: "60"
+        - name: MAX_IMAGE_RESOLUTION
+          value: "4096x4096"
+        - name: MAX_FILE_SIZE_BYTES
+          value: "5368709120"
+        - name: LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 9130
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 9130
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: logs
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - nexus-atelier
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nexus-atelier
+  namespace: nexus
