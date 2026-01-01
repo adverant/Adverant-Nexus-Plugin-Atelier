@@ -1,0 +1,117 @@
+{
+  "name": "nexus-atelier",
+  "displayName": "Atelier - AI Creative Design Studio",
+  "version": "1.0.0",
+  "description": "AI-powered creative design studio for illustrations, graphics, and visual assets. Generate book covers, marketing materials, character art, and more with multi-agent AI.",
+  "developer": {
+    "name": "Adverant",
+    "url": "https://adverant.ai",
+    "email": "plugins@adverant.ai",
+    "verified": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adverant/Adverant-Nexus-Plugin-Atelier"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "design",
+    "illustration",
+    "ai-art",
+    "book-covers",
+    "graphics",
+    "creative",
+    "visual-design"
+  ],
+  "nexus": {
+    "minVersion": "1.0.0",
+    "executionMode": "mcp_container",
+    "isolationLevel": 2,
+    "capabilities": [
+      "image-generation",
+      "book-cover-design",
+      "character-illustration",
+      "marketing-graphics",
+      "style-transfer",
+      "batch-generation"
+    ],
+    "permissions": [
+      "network:api.openai.com",
+      "network:api.stability.ai",
+      "filesystem:temp",
+      "service:mageagent",
+      "service:fileprocess"
+    ],
+    "entrypoint": "dist/index.js",
+    "healthCheck": "/health",
+    "readinessCheck": "/ready",
+    "livenessCheck": "/live"
+  },
+  "resources": {
+    "cpuMillicores": 2000,
+    "memoryMB": 4096,
+    "diskGB": 20,
+    "timeoutMs": 600000,
+    "maxConcurrentJobs": 5
+  },
+  "api": {
+    "version": "v1",
+    "basePath": "/api/v1/atelier",
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/generate",
+        "description": "Generate image from prompt"
+      },
+      {
+        "method": "POST",
+        "path": "/book-covers",
+        "description": "Generate book cover design"
+      },
+      {
+        "method": "POST",
+        "path": "/characters",
+        "description": "Generate character illustration"
+      },
+      {
+        "method": "GET",
+        "path": "/projects/:id",
+        "description": "Get project assets"
+      }
+    ]
+  },
+  "pricing": {
+    "model": "usage_based",
+    "currency": "USD",
+    "tiers": [
+      {
+        "name": "starter",
+        "displayName": "Starter",
+        "priceMonthly": 1900,
+        "limits": { "imagesPerMonth": 100 },
+        "features": ["basic-generation", "standard-quality"]
+      },
+      {
+        "name": "professional",
+        "displayName": "Professional",
+        "priceMonthly": 4900,
+        "limits": { "imagesPerMonth": 500 },
+        "features": ["all-models", "high-quality", "batch-generation"],
+        "popular": true
+      },
+      {
+        "name": "studio",
+        "displayName": "Studio",
+        "priceMonthly": 14900,
+        "limits": { "imagesPerMonth": -1 },
+        "features": ["unlimited", "priority", "api-access"]
+      }
+    ]
+  },
+  "marketplace": {
+    "category": "design",
+    "subcategory": "creative-tools",
+    "featured": true,
+    "tags": ["design", "illustration", "ai-art", "book-covers", "graphics"]
+  }
+}
